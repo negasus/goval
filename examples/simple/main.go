@@ -54,6 +54,8 @@ type UsersRequest struct {
 	ID      int    `json:"id" goval:"min=1"`
 	Custom  Custom `json:"custom" goval:"@customValidate"`
 	Custom2 Custom `json:"custom2" goval:"@Custom2.customValidate"`
+
+	Price float64 `json:"price" goval:"min=0.1"`
 }
 
 func main() {

@@ -11,12 +11,14 @@ var ruleFuncs = map[string]map[string]ruleFunc{
 		"@": getCustomFunc,
 	},
 	"min": {
-		"int":    getIntMin,
-		"string": getStringMin,
+		"float64": getFloat64Min,
+		"int":     getIntMin,
+		"string":  getStringMin,
 	},
 	"max": {
-		"int":    getIntMax,
-		"string": getStringMax,
+		"float64": getFloat64Max,
+		"int":     getIntMax,
+		"string":  getStringMax,
 	},
 	"in": {
 		"int":    getIntIn,

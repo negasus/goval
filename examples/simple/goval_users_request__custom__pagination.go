@@ -121,6 +121,17 @@ func (model *UsersRequest) Validate() goval.Errors {
 			errors[k] = append(errors[k], v...)
 		}
 	}
+	{ // Price
+		if model.Price < 0.1 {
+			errors["price"] = append(errors["price"], goval.Error{
+				Type: goval.ErrorTypeMinNumeric,
+				Values: map[string]any{
+					"field": "price",
+					"min":   0.1,
+				},
+			})
+		}
+	}
 
 	return errors
 }

@@ -103,7 +103,7 @@ You can use multiple rules separated by `;`.
 
 ### max
 
-For int values, it's the maximum value.
+For numeric values, it's the maximum value.
 
 For string values, it's the maximum length.
 
@@ -116,7 +116,7 @@ type Request struct {
 
 ### min
 
-For int values, it's the minimum value.
+For numeric values, it's the minimum value.
 
 For string values, it's the minimum length.
 

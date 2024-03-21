@@ -50,6 +50,20 @@ func getIntAfterEq(rule string) (int, error) {
 	return int(v), nil
 }
 
+func getFloat64AfterEq(rule string) (float64, error) {
+	parts := strings.Split(rule, "=")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("invalid rule: %s", rule)
+	}
+
+	v, errConvert := strconv.ParseFloat(parts[1], 64)
+	if errConvert != nil {
+		return 0, fmt.Errorf("convert min: %w", errConvert)
+	}
+
+	return v, nil
+}
+
 func toSneakCase(s string) string {
 	var res string
 	for i, r := range s {
