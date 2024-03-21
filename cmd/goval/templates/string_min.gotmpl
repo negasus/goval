@@ -1,0 +1,11 @@
+    { // {{ .field }}
+        if len(model.{{ .field }}) < {{ .min }} {
+            errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
+                Type: goval.ErrorTypeMinString,
+                Values: map[string]any{
+                    "field": "{{ .name }}",
+                    "min":   {{ .min }},
+                },
+            })
+        }
+    }

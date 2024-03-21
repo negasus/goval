@@ -1,0 +1,11 @@
+    { // {{ .field }}
+        if model.{{ .field }} > {{ .max }} {
+            errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
+                Type: goval.ErrorTypeMaxNumeric,
+                Values: map[string]any{
+                    "field": "{{ .name }}",
+                    "min":   {{ .max }},
+                },
+            })
+        }
+    }
