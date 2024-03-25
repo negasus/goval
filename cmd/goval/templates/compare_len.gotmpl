@@ -1,0 +1,10 @@
+    { // {{ .field }}
+        if len(model.{{ .field }}) {{ .op }} {{ .value }} {
+            errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
+                Type: goval.{{ .errorType }},
+                Values: map[string]any{
+                    "field": "{{ .name }}",{{ range $key, $value := .meta }}{{"\n\t\t\t\t\t"}}"{{ $key }}": {{ $value }},{{ end }}
+                },
+            })
+        }
+    }

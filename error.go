@@ -5,12 +5,15 @@ import (
 	"strings"
 )
 
+// Errors is a map of field names to a slice of errors
 type Errors map[string][]Error
 
+// Add adds an error to the Errors map
 func (e Errors) Add(fieldName string, err Error) {
 	e[fieldName] = append(e[fieldName], err)
 }
 
+// NewCustomError creates a new custom error
 func NewCustomError(messageID int) Error {
 	return Error{
 		Type:            ErrorTypeCustom,
@@ -19,6 +22,7 @@ func NewCustomError(messageID int) Error {
 	}
 }
 
+// NewError creates a new error
 func NewError(t ErrorType) Error {
 	return Error{
 		Type:   t,
@@ -26,11 +30,13 @@ func NewError(t ErrorType) Error {
 	}
 }
 
+// AddValue adds a value to the error
 func (e Error) AddValue(key string, value any) Error {
 	e.Values[key] = value
 	return e
 }
 
+// Error is a struct that represents an error
 type Error struct {
 	Type            ErrorType
 	Values          map[string]any
@@ -55,14 +61,15 @@ func (e Error) customMessageStringLang(ln string) string {
 	return s
 }
 
+// StringLang returns the error message in the specified language
 func (e Error) StringLang(ln string) string {
 	if e.customMessageID > 0 {
 		return e.customMessageStringLang(ln)
 	}
 
-	lang, ok := Langs[ln]
+	lang, ok := langs[ln]
 	if !ok {
-		lang = LangEn
+		lang = langEn
 	}
 
 	s, ok := lang[e.Type]
@@ -77,6 +84,7 @@ func (e Error) StringLang(ln string) string {
 	return s
 }
 
+// String returns the error message in the default language
 func (e Error) String() string {
 	return e.StringLang(defaultLang)
 }

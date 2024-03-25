@@ -4,12 +4,21 @@ Goval is a tool for generate validation functions for Go structs.
 
 Goval uses struct tags to generate validation functions for the struct fields.
 
-See [examples](examples).
+> Note: This tool is in the early stages of development and may contain bugs.
+> Also, not all types are supported yet.
 
 ## Install
 
+Install the CLI tool
+
 ```bash
 go install github.com/negasus/goval/cmd/goval@latest
+```
+
+And add the package to your project
+
+```bash
+go get github.com/negasus/goval
 ```
 
 ## Usage
@@ -97,58 +106,32 @@ func (model *Request) Validate() goval.Errors {
 
 ## Rules
 
-Rules are defined in the struct tags with the `goval` key.
+Rules are defined in the struct tags with the `goval` key. You can redefine the tag name by the `--tag` CLI flag.
+
 
 You can use multiple rules separated by `;`.
 
-### max
+| Rule | Description             | Support Types                                   |
+|------|-------------------------|-------------------------------------------------|
+| min  | minimum value or length | `int`, `float64`, `string`, `[]string`, `[]int` |
+| max  | maximum value or length | `int`, `float64`, `string`, `[]string`, `[]int` |
+| in   | list of valid values    | `int`, `string`, `[]int`, `[]string`            |
 
-For numeric values, it's the maximum value.
 
-For string values, it's the maximum length.
+For `in` rule you can define a list of valid values separated by `,`.
 
-```go
-type Request struct {
-	Name string `goval:"max=10"`
-	Age  int    `goval:"max=18"`
-}
-```
-
-### min
-
-For numeric values, it's the minimum value.
-
-For string values, it's the minimum length.
-
-```go
-type Request struct {
-	Name string `goval:"min=3"`
-	Age  int    `goval:"min=18"`
-}
-```
-
-### in
-
-For string and int values, it's a list of valid values separated by `,`.
-
-```go
-type Pagination struct {
-	PerPage int `goval:"in=10,20,30"`
-	Keys string `goval:"in=foo,bar,'with , comma'"`
-}
-```
-
-You can use syntax `in={variable_name}` to use a variable as the list of valid values.
+Also, you can use syntax `in={variable_name}` to use a variable as the list of valid values.
 
 ```go
 var validKeys = []string{"foo", "bar"}
 
 type Request struct {
+	Foo string `goval:"in=foo,bar"`
 	Key string `goval:"in={validKeys}"`
 }
 ```
 
-### custom validation function
+### Custom validation function
 
 You can use a custom validation function.
 
@@ -170,8 +153,6 @@ func (r *Request) customValidate() goval.Errors {
 ```
 
 Custom validation function must return `goval.Errors` and have no arguments.
-
-See example in [examples/simple](examples/simple).
 
 You can use alias `@` for call `Valiadate()` function for embedded structs.
 

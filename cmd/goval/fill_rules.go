@@ -4,26 +4,93 @@ import (
 	"fmt"
 	"go/ast"
 	"strings"
+
+	"github.com/negasus/goval"
 )
 
-var ruleFuncs = map[string]map[string]ruleFunc{
-	"@": {
-		"@": getCustomFunc,
-	},
-	"min": {
-		"float64": getFloat64Min,
-		"int":     getIntMin,
-		"string":  getStringMin,
-	},
-	"max": {
-		"float64": getFloat64Max,
-		"int":     getIntMax,
-		"string":  getStringMax,
-	},
-	"in": {
-		"int":    getIntIn,
-		"string": getStringIn,
-	},
+func getRuleFunc(funcName, typeName string) ruleFunc {
+	switch funcName {
+	case "min":
+		switch typeName {
+		case "int":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareInt(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinNumeric.String())
+			}
+		case "float64":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareFloat64(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinNumeric.String())
+			}
+		case "string":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinString.String())
+			}
+		case "[]string", "[]int":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinArray.String())
+			}
+		default:
+			return nil
+		}
+	case "max":
+		switch typeName {
+		case "int":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareInt(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxNumeric.String())
+			}
+		case "float64":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareFloat64(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxNumeric.String())
+			}
+		case "string":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxString.String())
+			}
+		case "[]string", "[]int":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxArray.String())
+			}
+		default:
+			return nil
+		}
+	case "in":
+		switch typeName {
+		case "int":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleInInt(structFieldName, fieldName, rule)
+			}
+		case "string":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleInString(structFieldName, fieldName, rule)
+			}
+		case "[]int":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleInIntSlice(structFieldName, fieldName, rule)
+			}
+		case "[]string":
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleInStringSlice(structFieldName, fieldName, rule)
+			}
+		default:
+			return nil
+		}
+	default:
+		return nil
+	}
+}
+
+func getTypeName(f ast.Expr) (string, bool) {
+	switch v := f.(type) {
+	case *ast.ArrayType:
+		s, ok := getTypeName(v.Elt)
+		if !ok {
+			return "", false
+		}
+		return "[]" + s, true
+	case *ast.Ident:
+		return v.Name, true
+	default:
+		return "", false
+	}
 }
 
 func fillRulesForEntry(e *entry) error {
@@ -32,8 +99,8 @@ func fillRulesForEntry(e *entry) error {
 			continue
 		}
 
-		typ, okTp := f.Type.(*ast.Ident)
-		if !okTp {
+		typeName, okTypeName := getTypeName(f.Type)
+		if !okTypeName {
 			continue
 		}
 
@@ -63,7 +130,7 @@ func fillRulesForEntry(e *entry) error {
 		}
 
 		for _, r := range rules {
-			ri, err := parseRule(r, typ.Name)
+			ri, err := parseRule(r, typeName)
 			if err != nil {
 				return fmt.Errorf("error parse rule: %w", err)
 			}
@@ -79,28 +146,30 @@ func fillRulesForEntry(e *entry) error {
 }
 
 func parseRule(r string, typeName string) (rule, error) {
-	fr := rule{
-		value: r,
-	}
-
-	var ok bool
-
 	if strings.HasPrefix(r, "@") {
-		fr.fn = getCustomFunc
-		return fr, nil
-	}
-	if strings.HasPrefix(r, "min=") {
-		fr.fn, ok = ruleFuncs["min"][typeName]
-	}
-	if strings.HasPrefix(r, "max=") {
-		fr.fn, ok = ruleFuncs["max"][typeName]
-	}
-	if strings.HasPrefix(r, "in=") {
-		fr.fn, ok = ruleFuncs["in"][typeName]
+		return rule{fn: getCustomFunc, value: r}, nil
 	}
 
-	if !ok {
-		return fr, fmt.Errorf("unsupported type %q for rule %q\n", typeName, r)
+	parts := strings.Split(r, "=")
+	if len(parts) > 2 {
+		return rule{}, fmt.Errorf("invalid rule %q\n", r)
+	}
+	if parts[0] == "" {
+		return rule{}, fmt.Errorf("invalid rule %q\n", r)
+	}
+
+	var tail string
+	if len(parts) == 2 {
+		tail = parts[1]
+	}
+
+	fr := rule{
+		value: tail,
+		fn:    getRuleFunc(parts[0], typeName),
+	}
+
+	if fr.fn == nil {
+		return rule{}, fmt.Errorf("invalid rule %q for type %s\n", r, typeName)
 	}
 
 	return fr, nil

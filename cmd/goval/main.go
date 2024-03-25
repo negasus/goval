@@ -13,6 +13,7 @@ import (
 )
 
 type RenderData struct {
+	Imports     map[string]struct{}
 	UsedFlags   string
 	PackageName string
 	Funcs       []RenderDataItem
@@ -28,6 +29,9 @@ var templatesFS embed.FS
 
 var (
 	templates *template.Template
+	rd        = RenderData{
+		Imports: map[string]struct{}{},
+	}
 )
 
 var opts struct {
@@ -77,9 +81,7 @@ func main() {
 		}
 	}
 
-	rd := RenderData{
-		UsedFlags: strings.Join(os.Args[1:], " "),
-	}
+	rd.UsedFlags = strings.Join(os.Args[1:], " ")
 
 	for _, e := range entries {
 		if rd.PackageName == "" {

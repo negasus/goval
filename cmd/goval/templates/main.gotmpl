@@ -10,6 +10,8 @@
 
 package {{ .PackageName }}
 
-import "github.com/negasus/goval"
+import ({{ range $key, $val := .Imports }}{{"\n\t"}}"{{ $key }}"{{ end }}
+    "github.com/negasus/goval"
+)
 
 {{ range .Funcs }}{{ template "func" . }}{{ end }}
