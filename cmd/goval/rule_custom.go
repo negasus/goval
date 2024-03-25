@@ -8,7 +8,7 @@ func getCustomFunc(structFieldName, fieldName, rule string) (string, error) {
 	funcName := strings.TrimPrefix(rule, "@")
 
 	if funcName == "" {
-		funcName = fieldName + ".Validate"
+		funcName = structFieldName + ".Validate"
 	}
 
 	data := map[string]any{

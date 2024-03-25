@@ -8,10 +8,16 @@ import (
 	"github.com/negasus/goval"
 )
 
-func getRuleFunc(funcName, typeName string) ruleFunc {
+func getRuleFunc(funcName string, t *typeName) ruleFunc {
 	switch funcName {
 	case "min":
-		switch typeName {
+		if t.isArray {
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinArray.String())
+			}
+		}
+
+		switch t.name {
 		case "int":
 			return func(structFieldName, fieldName, rule string) (string, error) {
 				return ruleCompareInt(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinNumeric.String())
@@ -24,15 +30,17 @@ func getRuleFunc(funcName, typeName string) ruleFunc {
 			return func(structFieldName, fieldName, rule string) (string, error) {
 				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinString.String())
 			}
-		case "[]string", "[]int":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinArray.String())
-			}
 		default:
 			return nil
 		}
 	case "max":
-		switch typeName {
+		if t.isArray {
+			return func(structFieldName, fieldName, rule string) (string, error) {
+				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxArray.String())
+			}
+		}
+
+		switch t.name {
 		case "int":
 			return func(structFieldName, fieldName, rule string) (string, error) {
 				return ruleCompareInt(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxNumeric.String())
@@ -45,15 +53,11 @@ func getRuleFunc(funcName, typeName string) ruleFunc {
 			return func(structFieldName, fieldName, rule string) (string, error) {
 				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxString.String())
 			}
-		case "[]string", "[]int":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxArray.String())
-			}
 		default:
 			return nil
 		}
 	case "in":
-		switch typeName {
+		switch t.name {
 		case "int":
 			return func(structFieldName, fieldName, rule string) (string, error) {
 				return ruleInInt(structFieldName, fieldName, rule)
@@ -78,34 +82,19 @@ func getRuleFunc(funcName, typeName string) ruleFunc {
 	}
 }
 
-func getTypeName(f ast.Expr) (string, bool) {
-	switch v := f.(type) {
-	case *ast.ArrayType:
-		s, ok := getTypeName(v.Elt)
-		if !ok {
-			return "", false
-		}
-		return "[]" + s, true
-	case *ast.Ident:
-		return v.Name, true
-	default:
-		return "", false
-	}
-}
-
 func fillRulesForEntry(e *entry) error {
 	for _, f := range e.Struct.Fields.List {
 		if f.Tag == nil {
 			continue
 		}
 
-		typeName, okTypeName := getTypeName(f.Type)
-		if !okTypeName {
+		rules := getGovalRules(f.Tag.Value)
+		if len(rules) == 0 {
 			continue
 		}
 
-		rules := getGovalRules(f.Tag.Value)
-		if len(rules) == 0 {
+		tn := getTypeName(f.Type)
+		if tn == nil {
 			continue
 		}
 
@@ -130,13 +119,12 @@ func fillRulesForEntry(e *entry) error {
 		}
 
 		for _, r := range rules {
-			ri, err := parseRule(r, typeName)
+			ri, err := parseRule(r, tn)
 			if err != nil {
 				return fmt.Errorf("error parse rule: %w", err)
 			}
 
 			g.rules = append(g.rules, ri)
-
 		}
 
 		e.fields = append(e.fields, g)
@@ -145,9 +133,13 @@ func fillRulesForEntry(e *entry) error {
 	return nil
 }
 
-func parseRule(r string, typeName string) (rule, error) {
+func parseRule(r string, t *typeName) (rule, error) {
 	if strings.HasPrefix(r, "@") {
 		return rule{fn: getCustomFunc, value: r}, nil
+	}
+	if t.isStar {
+		// isStar supported only for custom rules
+		return rule{}, fmt.Errorf("invalid rule %q for type %s\n", r, t.name)
 	}
 
 	parts := strings.Split(r, "=")
@@ -165,11 +157,11 @@ func parseRule(r string, typeName string) (rule, error) {
 
 	fr := rule{
 		value: tail,
-		fn:    getRuleFunc(parts[0], typeName),
+		fn:    getRuleFunc(parts[0], t),
 	}
 
 	if fr.fn == nil {
-		return rule{}, fmt.Errorf("invalid rule %q for type %s\n", r, typeName)
+		return rule{}, fmt.Errorf("invalid rule %q for type %q\n", r, t.name)
 	}
 
 	return fr, nil

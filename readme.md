@@ -111,11 +111,11 @@ Rules are defined in the struct tags with the `goval` key. You can redefine the 
 
 You can use multiple rules separated by `;`.
 
-| Rule | Description             | Support Types                                   |
-|------|-------------------------|-------------------------------------------------|
-| min  | minimum value or length | `int`, `float64`, `string`, `[]string`, `[]int` |
-| max  | maximum value or length | `int`, `float64`, `string`, `[]string`, `[]int` |
-| in   | list of valid values    | `int`, `string`, `[]int`, `[]string`            |
+| Rule | Description             | Support Types                             |
+|------|-------------------------|-------------------------------------------|
+| min  | minimum value or length | `int`, `float64`, `string`, `any slices`  |
+| max  | maximum value or length | `int`, `float64`, `string`, `any slices`  |
+| in   | list of valid values    | `int`, `string`, `[]int`, `[]string`      |
 
 
 For `in` rule you can define a list of valid values separated by `,`.
