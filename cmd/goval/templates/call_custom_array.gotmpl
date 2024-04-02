@@ -1,0 +1,7 @@
+{ // {{ .field }}
+    for idx, item := range model.{{ .field }} {
+        for k, v := range item.{{ .funcName }}() {
+            errors[fmt.Sprintf("{{ .name }}.%d.%s", idx, k)] = append(errors[k], v...)
+        }
+    }
+}
