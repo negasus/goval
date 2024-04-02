@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"go/format"
 	"os"
 	"path"
 	"strings"
@@ -129,6 +130,12 @@ func main() {
 
 	res := bytes.TrimRight(w.Bytes(), "\n")
 	res = append(res, 0x0A)
+
+	res, err = format.Source(res)
+	if err != nil {
+		fmt.Printf("format error: %s\n", err)
+		os.Exit(1)
+	}
 
 	errWrite := os.WriteFile(path.Join(workDir, outFilename), res, 0644)
 	if errWrite != nil {

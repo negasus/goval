@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/negasus/goval"
@@ -11,8 +12,8 @@ func TestMinInt(t *testing.T) {
 		ID: 0,
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeMinNumeric, 1) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeMinNumeric, 1); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = 1
@@ -28,8 +29,8 @@ func TestMinFloat(t *testing.T) {
 		Price: 0.5,
 	}
 
-	if !testOneError(t, r.Validate(), "price", goval.ErrorTypeMinNumeric, 10.5) {
-		return
+	if err := testOneError(r.Validate(), "price", goval.ErrorTypeMinNumeric, 10.5); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Price = 11.1
@@ -45,8 +46,8 @@ func TestMinString(t *testing.T) {
 		Name: "a",
 	}
 
-	if !testOneError(t, r.Validate(), "name", goval.ErrorTypeMinString, 3) {
-		return
+	if err := testOneError(r.Validate(), "name", goval.ErrorTypeMinString, 3); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Name = "123456789"
@@ -62,8 +63,8 @@ func TestMinStringArray(t *testing.T) {
 		Keys: []string{"a"},
 	}
 
-	if !testOneError(t, r.Validate(), "keys", goval.ErrorTypeMinArray, 3) {
-		return
+	if err := testOneError(r.Validate(), "keys", goval.ErrorTypeMinArray, 3); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Keys = []string{"1", "2", "3", "4"}
@@ -79,8 +80,8 @@ func TestMaxInt(t *testing.T) {
 		ID: 12,
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeMaxNumeric, 10) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeMaxNumeric, 10); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = 10
@@ -96,8 +97,8 @@ func TestMaxFloat(t *testing.T) {
 		Price: 21.5,
 	}
 
-	if !testOneError(t, r.Validate(), "price", goval.ErrorTypeMaxNumeric, 20.5) {
-		return
+	if err := testOneError(r.Validate(), "price", goval.ErrorTypeMaxNumeric, 20.5); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Price = 20.1
@@ -113,8 +114,8 @@ func TestMaxString(t *testing.T) {
 		Name: "12345678901",
 	}
 
-	if !testOneError(t, r.Validate(), "name", goval.ErrorTypeMaxString, 10) {
-		return
+	if err := testOneError(r.Validate(), "name", goval.ErrorTypeMaxString, 10); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Name = "12345"
@@ -130,8 +131,8 @@ func TestMaxStringArray(t *testing.T) {
 		Keys: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"},
 	}
 
-	if !testOneError(t, r.Validate(), "keys", goval.ErrorTypeMaxArray, 10) {
-		return
+	if err := testOneError(r.Validate(), "keys", goval.ErrorTypeMaxArray, 10); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Keys = []string{"1", "2", "3", "4"}
@@ -147,8 +148,8 @@ func TestMaxIntSliceMin(t *testing.T) {
 		IDs: []int{},
 	}
 
-	if !testOneError(t, r.Validate(), "ids", goval.ErrorTypeMinArray, 1) {
-		return
+	if err := testOneError(r.Validate(), "ids", goval.ErrorTypeMinArray, 1); err != nil {
+		t.Fatal(err)
 	}
 
 	r.IDs = []int{0, 1, 2}
@@ -164,8 +165,8 @@ func TestMaxIntSliceMax(t *testing.T) {
 		IDs: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 	}
 
-	if !testOneError(t, r.Validate(), "ids", goval.ErrorTypeMaxArray, 10) {
-		return
+	if err := testOneError(r.Validate(), "ids", goval.ErrorTypeMaxArray, 10); err != nil {
+		t.Fatal(err)
 	}
 
 	r.IDs = []int{0, 1, 2}
@@ -176,32 +177,27 @@ func TestMaxIntSliceMax(t *testing.T) {
 	}
 }
 
-func testOneError(t *testing.T, err goval.Errors, key string, errType goval.ErrorType, ruleValue any) bool {
+func testOneError(err goval.Errors, key string, errType goval.ErrorType, ruleValue any) error {
 	if len(err) != 1 {
-		t.Errorf("Expected 1 error, got %d", len(err))
-		return false
+		return fmt.Errorf("expected 1 error, got %d", len(err))
 	}
 
 	fieldErr, ok := err[key]
 	if !ok {
-		t.Errorf("Key %s not found", key)
-		return false
+		return fmt.Errorf("key %s not found", key)
 	}
 
 	if len(fieldErr) != 1 {
-		t.Errorf("Expected 1 error for field %s, got %d", key, len(fieldErr))
-		return false
+		return fmt.Errorf("expected 1 error for field %s, got %d", key, len(fieldErr))
 	}
 
 	if fieldErr[0].Type != errType {
-		t.Errorf("Expected %s, got %s", errType, fieldErr[0].Type)
-		return false
+		return fmt.Errorf("expected %s, got %s", errType, fieldErr[0].Type)
 	}
 
 	if ruleValue != nil && fieldErr[0].Values["rule_value"] != ruleValue {
-		t.Errorf("Expected rule_value %v, got %d", ruleValue, fieldErr[0].Values["rule_value"])
-		return false
+		return fmt.Errorf("expected rule_value %v, got %d", ruleValue, fieldErr[0].Values["rule_value"])
 	}
 
-	return true
+	return nil
 }

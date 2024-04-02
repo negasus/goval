@@ -47,8 +47,8 @@ func TestCustomEmbed(t *testing.T) {
 		},
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeMinNumeric, 10) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeMinNumeric, 10); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = 15

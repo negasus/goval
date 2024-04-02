@@ -11,8 +11,8 @@ func TestInSliceIntVar(t *testing.T) {
 		ID: 42,
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = 2
@@ -28,8 +28,8 @@ func TestInSliceIntVarSlice(t *testing.T) {
 		ID: []int{54},
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = []int{3}
@@ -45,8 +45,8 @@ func TestInSliceInt(t *testing.T) {
 		ID: 42,
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = 20
@@ -62,8 +62,8 @@ func TestInSliceIntSlice(t *testing.T) {
 		ID: []int{42},
 	}
 
-	if !testOneError(t, r.Validate(), "id", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "id", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.ID = []int{20}
@@ -79,8 +79,8 @@ func TestInSliceStringVar(t *testing.T) {
 		Name: "x",
 	}
 
-	if !testOneError(t, r.Validate(), "name", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "name", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Name = "a"
@@ -96,8 +96,8 @@ func TestInSliceStringVarSlice(t *testing.T) {
 		Name: []string{"x"},
 	}
 
-	if !testOneError(t, r.Validate(), "name", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "name", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Name = []string{"a"}
@@ -113,8 +113,8 @@ func TestInSliceString(t *testing.T) {
 		Name: "xx",
 	}
 
-	if !testOneError(t, r.Validate(), "name", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "name", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Name = "aa"
@@ -130,8 +130,8 @@ func TestInSliceStringSlice(t *testing.T) {
 		Name: []string{"xx"},
 	}
 
-	if !testOneError(t, r.Validate(), "name", goval.ErrorTypeIn, nil) {
-		return
+	if err := testOneError(r.Validate(), "name", goval.ErrorTypeIn, nil); err != nil {
+		t.Fatal(err)
 	}
 
 	r.Name = []string{"aa"}

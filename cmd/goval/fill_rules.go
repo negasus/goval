@@ -135,6 +135,9 @@ func fillRulesForEntry(e *entry) error {
 
 func parseRule(r string, t *typeName) (rule, error) {
 	if strings.HasPrefix(r, "@") {
+		if t.isArray {
+			return rule{fn: getCustomArrayFunc, value: r}, nil
+		}
 		return rule{fn: getCustomFunc, value: r}, nil
 	}
 	if t.isStar {

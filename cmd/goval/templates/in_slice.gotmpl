@@ -1,12 +1,12 @@
-    { // {{ .field }}
-        for _, v := range model.{{ .field }} {
-            if !slices.Contains({{ .sliceType }}{{ .var }}, v) {
-                errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
-                    Type: goval.{{ .errorType }},
-                    Values: map[string]any{
-                        "field": "{{ .name }}",{{ range $key, $value := .meta }}{{"\n\t\t\t\t\t\t"}}"{{ $key }}": {{ $value }},{{ end }}
-                    },
-                })
-            }
+{ // {{ .field }}
+    for _, v := range model.{{ .field }} {
+        if !slices.Contains({{ .sliceType }}{{ .var }}, v) {
+            errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
+                Type: goval.{{ .errorType }},
+                Values: map[string]any{
+                    "field": "{{ .name }}",{{ range $key, $value := .meta }}{{"\n"}}"{{ $key }}": {{ $value }},{{ end }}
+                },
+            })
         }
     }
+}

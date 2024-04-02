@@ -1,5 +1,5 @@
-    { // {{ .field }}
-        for k, v := range model.{{ .funcName }}() {
-            errors[k] = append(errors[k], v...)
-        }
+{ // {{ .field }}
+    for k, v := range model.{{ .funcName }}() {
+        errors[k] = append(errors[k], v...)
     }
+}
