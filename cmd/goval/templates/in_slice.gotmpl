@@ -2,7 +2,7 @@
     for _, v := range model.{{ .field }} {
         if !slices.Contains({{ .sliceType }}{{ .var }}, v) {
             errors = append(errors, goval.Error{
-                Type:   goval.{{ .errorType }},
+                Type:   "{{ .errorType }}",
                 Field:  "{{ .name }}",
                 Values: map[string]any{
                     "field": "{{ .name }}",{{ range $key, $value := .meta }}{{"\n"}}"{{ $key }}": {{ $value }},{{ end }}

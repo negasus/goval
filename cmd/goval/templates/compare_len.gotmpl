@@ -1,7 +1,7 @@
 { // {{ .field }}
     if len(model.{{ .field }}) {{ .op }} {{ .value }} {
         errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
-            Type: goval.{{ .errorType }},
+            Type: "{{ .errorType }}",
             Values: map[string]any{
                 "field": "{{ .name }}",{{ range $key, $value := .meta }}{{"\n"}}"{{ $key }}": {{ $value }},{{ end }}
             },
