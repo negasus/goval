@@ -1,5 +1,13 @@
-{ // {{ .field }}
-    for k, v := range model.{{ .funcName }}() {
-        errors[k] = append(errors[k], v...)
+{ // {{ .field }} {{if .embed }}(embedded){{end}}
+    errs := model.{{ .funcName }}()
+    if errs != nil {
+        for _, e := range errs.Errors {
+            errors = append(errors, goval.Error{
+                Type:   e.Type,
+                Field:  {{if .embed }}e.Field{{else}}"{{ .name }}"{{end}},
+                Values: e.Values,
+                Path:   []string{"{{ .name }}", e.Field},
+            })
+        }
     }
 }

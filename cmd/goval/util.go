@@ -11,7 +11,7 @@ var reGovalTags *regexp.Regexp
 
 func getGovalRules(s string) []string {
 	if reGovalTags == nil {
-		reGovalTags = regexp.MustCompile(opts.TagName + `:"([^"]+)"`)
+		reGovalTags = regexp.MustCompile(opts.tagName + `:"([^"]+)"`)
 	}
 
 	matches := reGovalTags.FindStringSubmatch(s)

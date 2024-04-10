@@ -9,44 +9,41 @@ import (
 	"path"
 	"strings"
 	"text/template"
-
-	"github.com/umputun/go-flags"
 )
 
-type RenderData struct {
+type renderData struct {
 	Imports     map[string]struct{}
 	UsedFlags   string
 	PackageName string
-	Funcs       []RenderDataItem
+	Funcs       []renderDataItem
 }
 
-type RenderDataItem struct {
+type renderDataItem struct {
 	StructName string
 	Blocks     []string
 }
+
+var opts cmdFlags
 
 //go:embed templates/*
 var templatesFS embed.FS
 
 var (
 	templates *template.Template
-	rd        = RenderData{
+	rd        = renderData{
 		Imports: map[string]struct{}{},
 	}
 )
 
-var opts struct {
-	Debug          bool     `short:"d" long:"debug" description:"Debug mode"`
-	SrcType        []string `short:"t" long:"type" description:"Type, multiple allowed" required:"true"`
-	OutputFilename string   `short:"o" long:"output" description:"Output file"`
-	TagName        string   `short:"n" long:"tag" description:"Tag name" default:"goval"`
-}
-
 func main() {
-	p := flags.NewParser(&opts, flags.PrintErrors|flags.PassDoubleDash|flags.HelpFlag)
-	_, err := p.Parse()
-	if err != nil {
-		os.Exit(2)
+	errFlags := parseFlags()
+	if errFlags != nil {
+		flagsUsage()
+		os.Exit(1)
+	}
+
+	if opts.tagName == "" {
+		opts.tagName = "goval"
 	}
 
 	var errParseTemplates error
@@ -62,13 +59,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	entries, errScan := scanDir(workDir, opts.SrcType)
+	entries, errScan := scanDir(workDir, opts.types)
 	if errScan != nil {
 		fmt.Printf("error scan workdir, %v\n", errScan)
 		os.Exit(1)
 	}
 
-	for _, t := range opts.SrcType {
+	for _, t := range opts.types {
 		var found bool
 		for _, e := range entries {
 			if e.StructName == t {
@@ -100,7 +97,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		rdi := RenderDataItem{
+		rdi := renderDataItem{
 			StructName: e.StructName,
 		}
 
@@ -115,9 +112,9 @@ func main() {
 		rd.Funcs = append(rd.Funcs, rdi)
 	}
 
-	outFilename := fmt.Sprintf("goval_%s.go", strings.Trim(toSneakCase(strings.Join(opts.SrcType, "_")), "_"))
-	if opts.OutputFilename != "" {
-		outFilename = opts.OutputFilename
+	outFilename := fmt.Sprintf("goval_%s.go", strings.Trim(toSneakCase(strings.Join(opts.types, "_")), "_"))
+	if opts.outputFilename != "" {
+		outFilename = opts.outputFilename
 	}
 
 	w := bytes.NewBuffer(nil)
@@ -131,9 +128,14 @@ func main() {
 	res := bytes.TrimRight(w.Bytes(), "\n")
 	res = append(res, 0x0A)
 
-	res, err = format.Source(res)
-	if err != nil {
-		fmt.Printf("format error: %s\n", err)
+	//for i, v := range strings.Split(string(res), "\n") {
+	//	fmt.Printf("%3d %s\n", i, v)
+	//}
+
+	var errFormat error
+	res, errFormat = format.Source(res)
+	if errFormat != nil {
+		fmt.Printf("format error: %s\n", errFormat)
 		os.Exit(1)
 	}
 
@@ -143,7 +145,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if opts.Debug {
+	if opts.debug {
 		fmt.Printf("write file: %s\n", path.Join(workDir, outFilename))
 	}
 }

@@ -1,45 +1,78 @@
 package goval
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
 
-// Errors is a map of field names to a slice of errors
-type Errors map[string][]Error
-
-// Add adds an error to the Errors map
-func (e Errors) Add(fieldName string, err Error) {
-	e[fieldName] = append(e[fieldName], err)
+type Errors struct {
+	Errors []Error
 }
 
-// NewCustomError creates a new custom error
-func NewCustomError(messageID int) Error {
-	return Error{
-		Type:            ErrorTypeCustom,
-		Values:          make(map[string]any),
-		customMessageID: messageID,
+func (e Errors) String() string {
+	return e.Error()
+}
+
+func (e Errors) Error() string {
+	var els []string
+	for _, er := range e.Errors {
+		els = append(els, er.String())
 	}
+	return "[" + strings.Join(els, ",") + "]"
 }
 
-// NewError creates a new error
-func NewError(t ErrorType) Error {
-	return Error{
-		Type:   t,
-		Values: make(map[string]any),
+func (e Errors) StringWithMessage() string {
+	var els []string
+	for _, er := range e.Errors {
+		els = append(els, er.StringWithMessage())
 	}
+
+	return "[" + strings.Join(els, ",") + "]"
 }
 
-// AddValue adds a value to the error
-func (e Error) AddValue(key string, value any) Error {
-	e.Values[key] = value
-	return e
+func (e Errors) StringWithMessageLang(ln string) string {
+	var els []string
+	for _, er := range e.Errors {
+		els = append(els, er.StringWithMessageLang(ln))
+	}
+
+	return "[" + strings.Join(els, ",") + "]"
 }
+
+//// NewCustomError creates a new custom error
+//func NewCustomError(messageID int) Error {
+//	return Error{
+//		Type:            ErrorTypeCustom,
+//		Values:          make(map[string]any),
+//		Path:            []string{},
+//		customMessageID: messageID,
+//	}
+//}
+
+//// NewError creates a new error
+//func NewError(t ErrorType) Error {
+//	return Error{
+//		Type:   t,
+//		Values: make(map[string]any),
+//		Path:   []string{},
+//	}
+//}
+
+//// AddValue adds a value to the error
+//func (e Error) AddValue(key string, value any) Error {
+//	e.Values[key] = value
+//	return e
+//}
 
 // Error is a struct that represents an error
 type Error struct {
-	Type            ErrorType
-	Values          map[string]any
+	Type    ErrorType      `json:"type,omitempty"`
+	Field   string         `json:"field,omitempty"`
+	Message string         `json:"message,omitempty"`
+	Values  map[string]any `json:"values,omitempty"`
+	Path    []string       `json:"path,omitempty"`
+
 	customMessageID int
 }
 
@@ -61,10 +94,17 @@ func (e Error) customMessageStringLang(ln string) string {
 	return s
 }
 
-// StringLang returns the error message in the specified language
-func (e Error) StringLang(ln string) string {
+// StringWithMessageLang returns the error message in the specified language
+func (e Error) StringWithMessageLang(ln string) string {
 	if e.customMessageID > 0 {
-		return e.customMessageStringLang(ln)
+		e.Message = e.customMessageStringLang(ln)
+
+		res, err := json.Marshal(e)
+		if err != nil {
+			return `{"error":"error while marshalling error"}`
+		}
+
+		return string(res)
 	}
 
 	lang, ok := langs[ln]
@@ -74,17 +114,32 @@ func (e Error) StringLang(ln string) string {
 
 	s, ok := lang[e.Type]
 	if !ok {
-		return "Unknown error"
+		return `{"error":"unknown error"}`
 	}
 
 	for k, v := range e.Values {
 		s = strings.Replace(s, "{"+k+"}", fmt.Sprintf("%v", v), -1)
 	}
 
-	return s
+	e.Message = s
+
+	res, err := json.Marshal(e)
+	if err != nil {
+		return `{"error":"error while marshalling error"}`
+	}
+
+	return string(res)
 }
 
-// String returns the error message in the default language
 func (e Error) String() string {
-	return e.StringLang(defaultLang)
+	res, err := json.Marshal(e)
+	if err != nil {
+		return `{"error":"error while marshalling error"}`
+	}
+
+	return string(res)
+}
+
+func (e Error) StringWithMessage() string {
+	return e.StringWithMessageLang(defaultLang)
 }

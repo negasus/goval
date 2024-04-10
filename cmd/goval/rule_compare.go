@@ -41,6 +41,7 @@ func ruleCompare(structFieldName, fieldName, op string, v any, errType, template
 		"meta": map[string]any{
 			"rule_value": v,
 		},
+		"path": []string{},
 	}
 
 	return returnWithTemplate(template, data)

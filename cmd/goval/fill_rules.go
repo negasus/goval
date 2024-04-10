@@ -12,46 +12,46 @@ func getRuleFunc(funcName string, t *typeName) ruleFunc {
 	switch funcName {
 	case "min":
 		if t.isArray {
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinArray.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareLen(a.structFieldName, a.fieldName, a.rule, "<", string(goval.ErrorTypeMinArray))
 			}
 		}
 
 		switch t.name {
 		case "int":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareInt(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinNumeric.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareInt(a.structFieldName, a.fieldName, a.rule, "<", string(goval.ErrorTypeMinNumeric))
 			}
 		case "float64":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareFloat64(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinNumeric.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareFloat64(a.structFieldName, a.fieldName, a.rule, "<", string(goval.ErrorTypeMinNumeric))
 			}
 		case "string":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareLen(structFieldName, fieldName, rule, "<", goval.ErrorTypeMinString.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareLen(a.structFieldName, a.fieldName, a.rule, "<", string(goval.ErrorTypeMinString))
 			}
 		default:
 			return nil
 		}
 	case "max":
 		if t.isArray {
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxArray.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareLen(a.structFieldName, a.fieldName, a.rule, ">", string(goval.ErrorTypeMaxArray))
 			}
 		}
 
 		switch t.name {
 		case "int":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareInt(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxNumeric.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareInt(a.structFieldName, a.fieldName, a.rule, ">", string(goval.ErrorTypeMaxNumeric))
 			}
 		case "float64":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareFloat64(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxNumeric.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareFloat64(a.structFieldName, a.fieldName, a.rule, ">", string(goval.ErrorTypeMaxNumeric))
 			}
 		case "string":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleCompareLen(structFieldName, fieldName, rule, ">", goval.ErrorTypeMaxString.String())
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleCompareLen(a.structFieldName, a.fieldName, a.rule, ">", string(goval.ErrorTypeMaxString))
 			}
 		default:
 			return nil
@@ -59,20 +59,20 @@ func getRuleFunc(funcName string, t *typeName) ruleFunc {
 	case "in":
 		switch t.name {
 		case "int":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleInInt(structFieldName, fieldName, rule)
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleInInt(a.structFieldName, a.fieldName, a.rule)
 			}
 		case "string":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleInString(structFieldName, fieldName, rule)
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleInString(a.structFieldName, a.fieldName, a.rule)
 			}
 		case "[]int":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleInIntSlice(structFieldName, fieldName, rule)
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleInIntSlice(a.structFieldName, a.fieldName, a.rule)
 			}
 		case "[]string":
-			return func(structFieldName, fieldName, rule string) (string, error) {
-				return ruleInStringSlice(structFieldName, fieldName, rule)
+			return func(a ruleFuncArgs) (string, error) {
+				return ruleInStringSlice(a.structFieldName, a.fieldName, a.rule)
 			}
 		default:
 			return nil
@@ -109,6 +109,7 @@ func fillRulesForEntry(e *entry) error {
 			if !okI {
 				continue
 			}
+			g.embedded = true
 			g.structFieldName = i.Name
 		}
 
@@ -145,6 +146,7 @@ func parseRule(r string, t *typeName) (rule, error) {
 		return rule{}, fmt.Errorf("invalid rule %q for type %s\n", r, t.name)
 	}
 
+	// todo: '=' may be in string value
 	parts := strings.Split(r, "=")
 	if len(parts) > 2 {
 		return rule{}, fmt.Errorf("invalid rule %q\n", r)

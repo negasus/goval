@@ -15,44 +15,18 @@ func SetDefaultLang(lang string) error {
 	return nil
 }
 
-// ErrorType is an enum for the different types of errors that can be returned by the validator
-type ErrorType int
+type ErrorType string
 
 const (
-	ErrorTypeCustom ErrorType = iota
-	ErrorTypeIn
-	ErrorTypeMaxNumeric
-	ErrorTypeMaxString
-	ErrorTypeMinNumeric
-	ErrorTypeMinString
-	ErrorTypeInvalid
-	ErrorTypeMinArray
-	ErrorTypeMaxArray
+	ErrorTypeCustom     ErrorType = "custom"
+	ErrorTypeMaxNumeric ErrorType = "max_numeric"
+	ErrorTypeMaxString  ErrorType = "max_string_length"
+	ErrorTypeMinNumeric ErrorType = "min_numeric"
+	ErrorTypeMinString  ErrorType = "min_string_length"
+	ErrorTypeInvalid    ErrorType = "invalid"
+	ErrorTypeMinArray   ErrorType = "min_array_length"
+	ErrorTypeMaxArray   ErrorType = "max_array_length"
 )
-
-// String returns the string representation of the error type
-func (t ErrorType) String() string {
-	switch t {
-	case ErrorTypeIn:
-		return "ErrorTypeIn"
-	case ErrorTypeMaxNumeric:
-		return "ErrorTypeMaxNumeric"
-	case ErrorTypeMaxString:
-		return "ErrorTypeMaxString"
-	case ErrorTypeMinNumeric:
-		return "ErrorTypeMinNumeric"
-	case ErrorTypeMinString:
-		return "ErrorTypeMinString"
-	case ErrorTypeInvalid:
-		return "ErrorTypeInvalid"
-	case ErrorTypeMinArray:
-		return "ErrorTypeMinArray"
-	case ErrorTypeMaxArray:
-		return "ErrorTypeMaxArray"
-	default:
-		return fmt.Sprintf("Unknown error type: '%d'", t)
-	}
-}
 
 // AddLanguage adds a new language to the validator
 func AddLanguage(lang string, messages map[ErrorType]string) {
@@ -66,7 +40,6 @@ var (
 	}
 
 	langEn = map[ErrorType]string{
-		ErrorTypeIn:         "The selected {field} is invalid",
 		ErrorTypeMaxNumeric: "The {field} must not be greater than {rule_value}",
 		ErrorTypeMaxString:  "The {field} must not be greater than {rule_value} characters",
 		ErrorTypeMinNumeric: "The {field} must be at least {rule_value}",
@@ -77,14 +50,13 @@ var (
 	}
 
 	langRu = map[ErrorType]string{
-		ErrorTypeIn:         "Поле {field} имеет некорректное значение",
-		ErrorTypeMaxNumeric: "Поле {field} должно быть больше {rule_value}",
+		ErrorTypeMaxNumeric: "Значение поля {field} должно быть более {rule_value}",
 		ErrorTypeMaxString:  "Длина поля {field} должна быть более {rule_value}",
-		ErrorTypeMinNumeric: "Поле {field} должно быть не менее {rule_value}",
+		ErrorTypeMinNumeric: "Значение поля {field} должно быть не менее {rule_value}",
 		ErrorTypeMinString:  "Длина поля {field} должна быть не менее {rule_value}",
 		ErrorTypeInvalid:    "Поле {field} имеет некорректное значение",
-		ErrorTypeMinArray:   "Поле {field} должно содержать не менее {rule_value} элементов",
-		ErrorTypeMaxArray:   "Поле {field} должно содержать не более {rule_value} элементов",
+		ErrorTypeMinArray:   "Количество элементов в поле {field} должно быть не менее {rule_value}",
+		ErrorTypeMaxArray:   "Количество элементов в поле {field} должно быть не более {rule_value}",
 	}
 )
 
@@ -97,4 +69,10 @@ func AddCustomMessage(messageID int, lang string, message string) {
 	}
 
 	customMessages[messageID][lang] = message
+}
+
+func Messages(errors *Errors, lang string) error {
+	for i := 0; i < len(errors.Errors); i++ {
+	}
+	return nil
 }

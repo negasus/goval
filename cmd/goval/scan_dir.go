@@ -39,7 +39,7 @@ func scanDir(workDir string, srcType []string) ([]*entry, error) {
 }
 
 func parseFile(dir, filename string, srcType []string) ([]*entry, error) {
-	if opts.Debug {
+	if opts.debug {
 		fmt.Printf("...parse file: %s\n", path.Join(dir, filename))
 	}
 

@@ -4,34 +4,35 @@ import (
 	"strings"
 )
 
-func getCustomFunc(structFieldName, fieldName, rule string) (string, error) {
-	funcName := strings.TrimPrefix(rule, "@")
+func getCustomFunc(a ruleFuncArgs) (string, error) {
+	funcName := strings.TrimPrefix(a.rule, "@")
 
 	if funcName == "" {
-		funcName = structFieldName + ".Validate"
+		funcName = a.structFieldName + ".Validate"
 	}
 
 	data := map[string]any{
-		"field":    structFieldName,
-		"name":     fieldName,
+		"field":    a.structFieldName,
+		"name":     a.fieldName,
 		"funcName": funcName,
+		"embed":    a.embed,
 	}
 
 	return returnWithTemplate("call_custom", data)
 }
 
-func getCustomArrayFunc(structFieldName, fieldName, rule string) (string, error) {
-	rd.Imports["fmt"] = struct{}{}
+func getCustomArrayFunc(a ruleFuncArgs) (string, error) {
+	rd.Imports["strconv"] = struct{}{}
 
-	funcName := strings.TrimPrefix(rule, "@")
+	funcName := strings.TrimPrefix(a.rule, "@")
 
 	if funcName == "" {
 		funcName = "Validate"
 	}
 
 	data := map[string]any{
-		"field":    structFieldName,
-		"name":     fieldName,
+		"field":    a.structFieldName,
+		"name":     a.fieldName,
 		"funcName": funcName,
 	}
 

@@ -5,7 +5,14 @@ import (
 	"go/ast"
 )
 
-type ruleFunc func(structFieldName, fieldName, rule string) (string, error)
+type ruleFuncArgs struct {
+	structFieldName string
+	fieldName       string
+	rule            string
+	embed           bool
+}
+
+type ruleFunc func(args ruleFuncArgs) (string, error)
 
 type entry struct {
 	Dir         string
@@ -25,13 +32,20 @@ type field struct {
 	structFieldName string
 	fieldName       string
 	rules           []rule
+	embedded        bool
 }
 
 func (e *entry) renderBlocks() ([]string, error) {
 	var res []string
 	for _, f := range e.fields {
 		for _, r := range f.rules {
-			v, err := r.fn(f.structFieldName, f.fieldName, r.value)
+			a := ruleFuncArgs{
+				structFieldName: f.structFieldName,
+				fieldName:       f.fieldName,
+				rule:            r.value,
+				embed:           f.embedded,
+			}
+			v, err := r.fn(a)
 			if err != nil {
 				return nil, fmt.Errorf("error render block: %w", err)
 			}

@@ -16,7 +16,7 @@ func ruleInSlice(structFieldName, fieldName, sliceType, v, templateName string) 
 		"name":      fieldName,
 		"sliceType": sliceType,
 		"var":       v,
-		"errorType": goval.ErrorTypeIn,
+		"errorType": goval.ErrorTypeInvalid,
 		"meta":      map[string]any{},
 	}
 

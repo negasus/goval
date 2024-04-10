@@ -1,10 +1,12 @@
 { // {{ .field }}
     if model.{{ .field }} {{ .op }} {{ .value }} {
-        errors["{{ .name }}"] = append(errors["{{ .name }}"], goval.Error{
-            Type: goval.{{ .errorType }},
+        errors = append(errors, goval.Error{
+            Type: "{{ .errorType }}",
+            Field: "{{ .name }}",
             Values: map[string]any{
                 "field": "{{ .name }}",{{ range $key, $value := .meta }}{{"\n"}}"{{ $key }}": {{ $value }},{{ end }}
             },
+            Path: []string{},
         })
     }
 }

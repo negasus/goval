@@ -1,7 +1,15 @@
-{ // {{ .field }}
+{ // {{ .field }} {{if .embed }}(embedded){{end}}
     for idx, item := range model.{{ .field }} {
-        for k, v := range item.{{ .funcName }}() {
-            errors[fmt.Sprintf("{{ .name }}.%d.%s", idx, k)] = append(errors[k], v...)
+        errs := item.Validate()
+        if errs != nil {
+            for _, e := range errs.Errors {
+                errors = append(errors, goval.Error{
+                    Type:   e.Type,
+                    Field:  "{{ .name }}",
+                    Values: e.Values,
+                    Path:   []string{"{{ .name }}", strconv.Itoa(idx), e.Field},
+                })
+            }
         }
     }
 }
